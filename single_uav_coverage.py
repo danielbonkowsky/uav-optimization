@@ -15,6 +15,7 @@ Output
 rate : achievable rate in bits/s/hz
 """
 import math
+import scipy
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -26,6 +27,23 @@ BS_DISTANCE = 100 # BS is 100m from the center of the UAV circle
 BS_TRANSMIT_POWER = 100
 UAV_TRANSMIT_POWER = 100
 NOISE_POWER = 0.01
+
+SIGNAL_FREQUENCY = 2*10**9 # 2GHz
+SIGNAL_WAVELENGTH = scipy.constants.c / SIGNAL_FREQUENCY
+
+def friis_free_space(ptx, d, lmda, gt=1, gr=1):
+    """returns recieved power based on the friis free space equation
+    see https://en.wikipedia.org/wiki/Friis_transmission_equation#Contemporary_formula
+
+    Arguments:
+    ptx -- the transmit power
+    d -- distance from transmitter to receiver
+    lmda -- wavelength of signal
+    gt -- gain of the transmitting antenna
+    gr -- gain of the receiving antenna
+    """
+
+    return (ptx * gt * gr * lmda**2) / ( (4  * math.pi)**2 * d**2)
 
 def uav_distance(theta, x, y):
     """returns the distance from a point to the UAV
@@ -44,14 +62,15 @@ def uav_distance(theta, x, y):
     return math.sqrt(UAV_HEIGHT**2 + plane_distance**2)
 
 def uav_downlink_rate(theta):
-    """returns the downlink rate achievable by the UAV
+    """returns the downlink rate achievable by the UAV using Shannon-Hartley
+    theorem. See https://en.wikipedia.org/wiki/Shannon-Hartley_theorem
 
     Arguments
     theta -- the UAV's position along its flight path
     """
 
     d = uav_distance(theta, -BS_DISTANCE, 0)
-    power = BS_TRANSMIT_POWER / (d**2)
+    power = friis_free_space(BS_TRANSMIT_POWER, d, SIGNAL_WAVELENGTH)
     
     return math.log2(1 + power/NOISE_POWER) 
 
@@ -65,7 +84,7 @@ def user_downlink_rate(theta, x, y):
     """
 
     d = uav_distance(theta, x, y)
-    power = UAV_TRANSMIT_POWER / (d**2)
+    power = friis_free_space(UAV_TRANSMIT_POWER, d, SIGNAL_WAVELENGTH)
 
     return math.log2(1 + power/NOISE_POWER)
 
