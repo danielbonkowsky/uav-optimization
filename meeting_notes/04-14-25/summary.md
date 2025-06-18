@@ -1,0 +1,15 @@
+Meeting notes:
+- Reviewed current literature on UAVs as aerial coverage links
+	- Using drone swarms to cover dead zones has been researched, but gaps exist when considering heterogenous drone swarms
+- Why would it be beneficial to use drones with differing capabilities?
+	- Fixed-wing drone flies out to rural location and deploys drone swarm, acting as their aerial base station
+	- Strengths of multiple different drone types can be utilized (e.g., carrying capacity of fixed wing UAVs, mobility of small quadcopters)
+- What applications are there?
+	- Network coverage in emergency situations
+	- Agriculture (i.e., precise fertilization or pesticides in rural areas)
+	- Disaster monitoring
+	- Crowd surveillance (dead coverage zones arise due to high amount of people?)
+	- Oceanic monitoring (UAVs are deployed from ship to scout or do marine bio stuff?)
+- Next steps
+	- Continue reading research to refine problem and application of heterogenous drone swarm
+	- Begin to install different simulators (ROS, gazebo, MATLAB UAV library)
