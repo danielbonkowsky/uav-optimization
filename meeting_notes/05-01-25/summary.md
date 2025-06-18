@@ -1,0 +1,4 @@
+Today, we spent most of the time going over this paper (https://ieeexplore.ieee.org/abstract/document/7562472) which outlines a UAV network model where the UAV serves as an intermediate relay between two base stations too far to communicate directly with each other. The central concepts we went over were
+- Math/parameters to calculate BS -> AUV and UAV -> BS transmit rate as well as signal-to-noise ratio
+- How outage probability is calculated
+For next week the goal is to try to get some plots showing the relationship between the angle of the UAV along its circular flight path and the achievable rate for a user in the UAV's coverage zone (calculated as an average of all the different points in the coverage zone?).
