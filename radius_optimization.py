@@ -39,6 +39,7 @@ RADIUS_DEADZONE = 100         # Radius of dead zone
 NUM_USERS = 50                # Number of users in the dead zone
 USER_DISTRIBUTION = 'uniform' # Distribution of users in the dead zone
 
+ANTENNA_GAIN = 1 # GT, GR in power equations
 def bs_uav_distance(theta):
     """returns distance between the base station and UAV
 
@@ -64,12 +65,25 @@ def uav_gu_distance(theta, x, z):
                     + (RADIUS_UAV * math.sin(theta) - z)**2 )
                      
 def uav_receive_power(theta):
-    # TODO: Calculate P_rx of the BS -> UAV channel for a given theta
-    pass
+    """returns the received power at the UAV from the BS
+    
+    Arguments:
+    theta -- the UAV's position along its flight path
+    """
+    
+    return ( (POWER_BASE_STATION * ANTENNA_GAIN**2 * SIGNAL_WAVELENGTH**2)
+           / (4 * math.pi * bs_uav_distance(theta))**2 )
 
-def user_receive_power(theta, x, y):
-    # TODO: Calculate the P_rx of the UAV -> GU channel for a given theta, x, y
-    pass
+def user_receive_power(theta, x, z):
+    """returns the received power at the user from the UAV
+
+    Arguments:
+    theta -- the UAV's position along its flight path
+    x -- the x coordinate of the ground user
+    z -- the z coordinate of the ground user
+    """
+    return ( (POWER_UAV * ANTENNA_GAIN**2 * SIGNAL_WAVELENGTH**2)
+           / (4 * math.pi * uav_gu_distance(theta, x, z))**2 )
 
 def generate_users():
     """returns a list of user coordinates generated based on how the users are 
