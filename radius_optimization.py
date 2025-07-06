@@ -32,7 +32,7 @@ BANDWIDTH = 1*10**6 # UAV/BS/GU bandwidth (from energy-efficiency paper)
 # power in dBW = 10 * log10(power / 1W)
 # power in W = 10^(power in dBW / 10)
 POWER_NOISE = 7.5 - 174 + 10 * math.log10(BANDWIDTH) # Noise power in dBW
-POWER_BASE_STATION = 47                              # BS power in dBW (from 3GPP paper)
+POWER_GROUND_USER = 10                               # User power in dBW
 POWER_UAV = 10                                       # UAV power in dBW (from energy-efficiency paper)
 
 RADIUS_DEADZONE = 100         # Radius of dead zone
@@ -40,19 +40,9 @@ NUM_USERS = 50                # Number of users in the dead zone
 USER_DISTRIBUTION = 'uniform' # Distribution of users in the dead zone
 
 ANTENNA_GAIN = 1 # GT, GR in power equations
-def bs_uav_distance(theta):
-    """returns distance between the base station and UAV
 
-    Arguments:
-    theta -- the UAV's position along its flight path
-    """
-
-    return math.sqrt( (A + RADIUS_UAV * math.cos(theta)**2
-                    + H**2
-                    + (RADIUS_UAV * math.sin(theta))**2) )
-
-def uav_gu_distance(theta, x, z):
-    """returns the distance between the UAV and a ground user
+def gu_uav_distance(theta, x, z):
+    """returns the distance between a ground user and the UAV
 
     Arguments:
     theta -- the UAV's position along its flight path
@@ -63,27 +53,39 @@ def uav_gu_distance(theta, x, z):
     return math.sqrt( (A + RADIUS_UAV * math.cos(theta) - x)**2
                     + H**2
                     + (RADIUS_UAV * math.sin(theta) - z)**2 )
-                     
-def uav_receive_power(theta):
-    """returns the received power at the UAV from the BS
-    
+
+def uav_bs_distance(theta):
+    """returns distance between the UAV and base station
+
     Arguments:
     theta -- the UAV's position along its flight path
     """
-    
-    return ( (POWER_BASE_STATION * ANTENNA_GAIN**2 * SIGNAL_WAVELENGTH**2)
-           / (4 * math.pi * bs_uav_distance(theta))**2 )
 
-def user_receive_power(theta, x, z):
-    """returns the received power at the user from the UAV
+    return math.sqrt( (A + RADIUS_UAV * math.cos(theta)**2
+                    + H**2
+                    + (RADIUS_UAV * math.sin(theta))**2) )
+
+def uav_receive_power(theta, x, z):
+    """returns the received power at the UAV from the user
 
     Arguments:
     theta -- the UAV's position along its flight path
     x -- the x coordinate of the ground user
     z -- the z coordinate of the ground user
     """
+
+    return ( (POWER_GROUND_USER * ANTENNA_GAIN**2 * SIGNAL_WAVELENGTH**2)
+           / (4 * math.pi * gu_uav_distance(theta, x, z))**2 )
+
+def bs_receive_power(theta):
+    """returns the received power at the BS from the UAV
+    
+    Arguments:
+    theta -- the UAV's position along its flight path
+    """
+
     return ( (POWER_UAV * ANTENNA_GAIN**2 * SIGNAL_WAVELENGTH**2)
-           / (4 * math.pi * uav_gu_distance(theta, x, z))**2 )
+           / (4 * math.pi * uav_bs_distance(theta))**2 )
 
 def generate_users():
     """returns a list of user coordinates generated based on how the users are 
@@ -99,4 +101,3 @@ def generate_users():
             user_coordinates.append((x, 0, z))
 
         return user_coordinates
-        
