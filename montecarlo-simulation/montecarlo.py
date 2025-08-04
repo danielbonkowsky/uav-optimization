@@ -3,6 +3,9 @@ import random
 
 wB = Matrix([0, 0, 0])
 
+# Let K = M * N for ease of scheduling
+
+
 H = symbols('H')
 v = symbols('v')
 T = symbols('T')
