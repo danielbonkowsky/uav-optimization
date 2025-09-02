@@ -13,6 +13,8 @@ def sca_optimize_uav_circle(
     # SCA controls
     r_init=None, cx_init=None, cy_init=None,
     r_bounds=None,           # tuple (r_min, r_max) or None
+    cx_bounds=None,
+    cy_bounds=None,
     max_sca_iters=30,
     sca_tol=1e-3,
     trust_radius=None,       # e.g. 200.0 meters, or None
@@ -146,6 +148,15 @@ def sca_optimize_uav_circle(
         if r_bounds is not None:
             r_min, r_max = r_bounds
             cons += [ r_var >= r_min, r_var <= r_max ]
+        
+        if cx_bounds is not None:
+            cx_min, cx_max = cx_bounds
+            cons += [ cx_var >= cx_min, cx_var <= cx_max ]
+        
+        if cy_bounds is not None:
+            cy_min, cy_max = cy_bounds
+            cons += [ cy_var >= cy_min, cy_var <= cy_max ]
+
         # Enforce positive radius (even if no bounds)
         cons += [ r_var >= 0.0 ]
 
@@ -161,7 +172,7 @@ def sca_optimize_uav_circle(
         obj = cp.Maximize( cp.sum(t) / N )
 
         prob = cp.Problem(obj, cons)
-        prob.solve(solver=cp.ECOS if solver=="ECOS" else cp.SCS, verbose=verbose)
+        prob.solve(solver=cp.MOSEK, verbose=verbose)
 
         if prob.status not in ("optimal", "optimal_inaccurate"):
             raise RuntimeError(f"SCA subproblem infeasible/failed at iter {it}: status {prob.status}")
