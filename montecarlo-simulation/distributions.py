@@ -612,7 +612,7 @@ def oneFarOneClose(num_users, seed=324):
 
     users = []
 
-    weights = [0.2, 0.8]
+    weights = [0.3, 0.7]
     means = [(3000, 3000), (10000, 10000)]
     std_devs = [500, 500]
 
