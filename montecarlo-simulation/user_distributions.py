@@ -92,3 +92,26 @@ def leftUpSkewedNormal(num_users, mean1, std1, mean2, std2, seed=324):
                 users.append((x, y))
     
     return np.asarray(users)
+
+def leftUpRectangles(num_users, rect_length, rect_width, cx, cy, seed=324):
+    random.seed(seed)
+    np.random.seed(seed)
+    rng = np.random.default_rng(seed)
+
+    users = []
+
+    while (len(users) < num_users):
+        x = rng.uniform(0, rect_length)
+        y = rng.uniform(0, rect_length)
+
+        translated_x = x + cx - rect_length
+        translated_y = y + cy
+
+        if (translated_x**2 + translated_y**2 > 4000000):
+            if x < (rect_length - rect_width) and y < rect_width:
+                users.append((translated_x, translated_y))
+            elif x > (rect_length - rect_width):
+                users.append((translated_x, translated_y))
+    
+    return np.asarray(users)
+        
