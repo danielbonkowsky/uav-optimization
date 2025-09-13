@@ -114,4 +114,18 @@ def leftUpRectangles(num_users, rect_length, rect_width, cx, cy, seed=324):
                 users.append((translated_x, translated_y))
     
     return np.asarray(users)
-        
+
+def normalDistribution(num_users, cx, cy, std, seed=324):
+    random.seed(seed)
+    np.random.seed(seed)
+    rng = np.random.default_rng(seed)
+
+    users = []
+    while (len(users) < num_users):
+        x = rng.normal(loc=cx, scale=std)
+        y = rng.normal(loc=cy, scale=std)
+
+        if (x**2 + y**2 > 4000000):
+            users.append((x, y))
+    
+    return np.asarray(users)
