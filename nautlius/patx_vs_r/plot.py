@@ -2,6 +2,7 @@ import random
 import scipy
 import numpy as np
 import cvxpy as cp
+import gc
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from scipy.optimize import minimize
@@ -299,6 +300,25 @@ def powells_optimizer(
     
     return alpha, a, traj_history
 
+def random_schedule(maxiters=1000, tol=1e-9):
+    mat = np.random.rand(N, K)
+
+    for _ in range(maxiters):
+        # Scale rows
+        row_sums = mat.sum(axis=1, keepdims=True)
+        mat *= (M / row_sums)
+
+        # Scale columns
+        col_sums = mat.sum(axis=0, keepdims=True)
+        mat *= ( (N*M/K) / col_sums)
+
+        # Check convergence
+        if (np.allclose(mat.sum(axis=1), M, atol=tol) and
+            np.allclose(mat.sum(axis=0), N, atol=tol)):
+            break
+
+    return mat
+
 # Starting conditions
 alpha0 = 0.5
 r0 = r_min
@@ -312,41 +332,44 @@ def run_once(PAtx, users):
     r_opt, cx_opt, cy_opt = traj_hist[-1]
     return r_opt
 
-def process_iteration(it, PAtx_arr, K, D, iterations):
-    """Process a single iteration for all variance levels and PAtx values"""
-    print(f'{np.round(it/iterations * 100, decimals=2)}% complete')
-    
-    # Generate users once per iteration
-    sm_users = normalDistribution(K, D, 0, 1000)
-    md_users = normalDistribution(K, D, 0, 2000)
-    lg_users = normalDistribution(K, D, 0, 3000)
-    
-    # Process all PAtx values in parallel for each variance level
-    sm_results = Parallel(n_jobs=-1, backend='threading')(
-        delayed(run_once)(PAtx, sm_users) for PAtx in PAtx_arr
-    )
-    md_results = Parallel(n_jobs=-1, backend='threading')(
-        delayed(run_once)(PAtx, md_users) for PAtx in PAtx_arr
-    )
-    lg_results = Parallel(n_jobs=-1, backend='threading')(
-        delayed(run_once)(PAtx, lg_users) for PAtx in PAtx_arr
-    )
-    
-    return sm_results, md_results, lg_results
+def patx_plot(iterations=1000):
+    PAtx_arr = np.arange(0.1, 10, 0.1)
 
-def patx_plot(iterations=3000):
-    PAtx_arr = np.arange(0.1, 10, 0.05)
+    sm_results = []
+    md_results = []
+    lg_results = []
 
-    # Run all iterations in parallel
-    all_results = Parallel(n_jobs=-1)(
-        delayed(process_iteration)(it, PAtx_arr, K, D, iterations) 
-        for it in range(iterations)
-    )
+    for it in range(iterations):
+        print(f'{np.round(it/iterations * 100, decimals=2)}% complete')
+        
+         # Generate users once per iteration
+        sm_users = normalDistribution(K, D, 0, 1000)
+        md_users = normalDistribution(K, D, 0, 2000)
+        lg_users = normalDistribution(K, D, 0, 3000)
 
-    # Unpack results
-    sm_results = np.array([result[0] for result in all_results])
-    md_results = np.array([result[1] for result in all_results])
-    lg_results = np.array([result[2] for result in all_results])
+        # Calculate r values
+        sm_batch = Parallel(n_jobs=-1, backend='threading')(
+            delayed(run_once)(PAtx, sm_users) for PAtx in PAtx_arr
+        )
+
+        md_batch = Parallel(n_jobs=-1, backend='threading')(
+            delayed(run_once)(PAtx, md_users) for PAtx in PAtx_arr
+        )
+
+        lg_batch = Parallel(n_jobs=-1, backend='threading')(
+            delayed(run_once)(PAtx, lg_users) for PAtx in PAtx_arr
+        )
+
+        sm_results.append(sm_batch)
+        md_results.append(md_batch)
+        lg_results.append(lg_batch)
+
+        # Garbage collection
+        gc.collect()
+
+    sm_results = np.array(sm_results)
+    md_results = np.array(md_results)
+    lg_results = np.array(lg_results)
 
     # Calculate means and plot
     sm_radii = sm_results.mean(axis=0)
@@ -354,8 +377,13 @@ def patx_plot(iterations=3000):
     lg_radii = lg_results.mean(axis=0)
     
     plt.plot(PAtx_arr, sm_radii, c='r', label='variance = 1000m')
+    plt.fill_between(PAtx_arr, np.add(sm_radii, sm_results.std(axis=0)), np.subtract(sm_radii, sm_results.std(axis=0)), color='r', alpha=0.3)
+
     plt.plot(PAtx_arr, md_radii, c='g', label='variance = 2000m')
+    plt.fill_between(PAtx_arr, np.add(md_radii, md_results.std(axis=0)), np.subtract(md_radii, md_results.std(axis=0)), color='g', alpha=0.3)
+
     plt.plot(PAtx_arr, lg_radii, c='b', label='variance = 3000m')
+    plt.fill_between(PAtx_arr, np.add(lg_radii, lg_results.std(axis=0)), np.subtract(lg_radii, lg_results.std(axis=0)), color='b', alpha=0.3)
 
     plt.grid(True)
     plt.xlabel("UAV transmission power (W)")
