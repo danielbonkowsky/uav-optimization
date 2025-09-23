@@ -25,7 +25,7 @@ cy_min = -20000
 cy_max = 20000
 v = 50 # meters/second
 N = 200 # timeslots in one rotation
-M = 2 # users
+M = 5 # users
 K = 20 # total number of users
 H = 1000 # meters
 PAtx = 10 # watts
@@ -72,7 +72,8 @@ def meanSE(alpha,
            users=users,
            AU=AU,
            AB=AB,
-           H=H):
+           H=H,
+           M=M):
 
     # Compute UAV position at each timeslot
     ax = cx + r*cos_th
@@ -106,6 +107,7 @@ def optimize_alpha(r,
                    AU=AU,
                    AB=AB,
                    H=H,
+                   M=M,
                    verbose=False):
     
     # Compute UAV position at each timeslot
@@ -151,6 +153,7 @@ def optimize_a(alpha,
                AU=AU,
                AB=AB,
                H=H,
+               M=M,
                verbose=False):
     
     # Compute UAV position at each timeslot
@@ -199,7 +202,7 @@ def optimize_a(alpha,
     
     return a_vars.value
 
-def objective(params, alpha, a, users, AU, AB, H):
+def objective(params, alpha, a, users, AU, AB, H, M):
     r, cx, cy = params
     return -meanSE(alpha, 
                    r, 
@@ -209,7 +212,8 @@ def objective(params, alpha, a, users, AU, AB, H):
                    users=users,
                    AU=AU,
                    AB=AB,
-                   H=H)
+                   H=H,
+                   M=M)
 
 def powells_optimizer(
                     alpha0,
@@ -223,6 +227,7 @@ def powells_optimizer(
                     AU=AU,
                     AB=AB,
                     H=H,
+                    M=M,
                     tolerance=1e-3,
                     verbose=True
 ):
@@ -249,7 +254,8 @@ def powells_optimizer(
                        users=users,
                        AU=AU,
                        AB=AB,
-                       H=H)
+                       H=H,
+                       M=M)
         if verbose:
             print('    User scheduling optimized')
 
@@ -260,14 +266,15 @@ def powells_optimizer(
                                users=users,
                                AU=AU,
                                AB=AB,
-                               H=H)
+                               H=H,
+                               M=M)
         if verbose:
             print('    Timeshare optimized')
         
         result = minimize(
                     objective,
                     [r,cx,cy],
-                    args=(alpha, a, users, AU, AB, H),
+                    args=(alpha, a, users, AU, AB, H, M),
                     method='Powell',
                     bounds=bounds,
                     options={
@@ -290,7 +297,8 @@ def powells_optimizer(
                                   users=users,
                                   AU=AU,
                                   AB=AB,
-                                  H=H))
+                                  H=H,
+                                  M=M))
         traj_history.append((r, cx, cy))
 
         if it > 0:
@@ -300,7 +308,7 @@ def powells_optimizer(
     
     return alpha, a, traj_history
 
-def random_schedule(maxiters=1000, tol=1e-9):
+def random_schedule(M=M, maxiters=1000, tol=1e-9):
     mat = np.random.rand(N, K)
 
     for _ in range(maxiters):
