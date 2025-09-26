@@ -70,7 +70,7 @@ def meanSE(alpha,
            r, 
            cx, 
            cy, 
-           a,
+           b,
            users=users,
            AU=AU,
            AB=AB,
@@ -90,7 +90,7 @@ def meanSE(alpha,
 
     # Calculate SEUA
     log_terms = np.log2(1.0 + AU/snk0)
-    seua = (alpha/M) * np.sum(a * log_terms, axis=1)
+    seua = (alpha/M) * np.sum(b * log_terms, axis=1)
 
     # Calculate SEAB
     seab = (1-alpha) * np.log2(1.0 + AB/sbn0)
@@ -104,7 +104,7 @@ def meanSE(alpha,
 def optimize_alpha(r, 
                    cx, 
                    cy, 
-                   a, 
+                   b, 
                    users=users, 
                    AU=AU,
                    AB=AB,
@@ -125,7 +125,7 @@ def optimize_alpha(r,
     # Vectorized computation of an and bn
     # an[n] = sum over users of a[n] * log2(1 + AU/snk0[n])
     log_terms = np.log2(1.0 + AU/snk0)  # Shape: (N, num_users)
-    an = np.sum(a * log_terms, axis=1)   # Shape: (N,) - sum over users for each timeslot
+    an = np.sum(b * log_terms, axis=1)   # Shape: (N,) - sum over users for each timeslot
     bn = np.log2(1.0 + AB/sbn0)          # Shape: (N,)
 
     alpha_var = cp.Variable()
@@ -147,7 +147,7 @@ def optimize_alpha(r,
     
     return float(alpha_var.value)
 
-def optimize_a(alpha, 
+def optimize_b(alpha, 
                r, 
                cx, 
                cy, 
@@ -173,24 +173,24 @@ def optimize_a(alpha,
     seab = (1-alpha) * np.log2(1.0 + AB/sbn0)   # Shape: (N,)
 
     # define CVXPY variables
-    a_vars = cp.Variable((N, K))
+    b_vars = cp.Variable((N, K))
     t_vars = cp.Variable(N)
 
     # Constraints
     cons = []
 
     # Add tn constraints - vectorized
-    cons += [t_vars[n] <= cp.sum(cp.multiply(a_vars[n], seua[n])) for n in range(N)]
+    cons += [t_vars[n] <= cp.sum(cp.multiply(b_vars[n], seua[n])) for n in range(N)]
     cons += [t_vars <= seab]  # Vectorized constraint
     
     # Box constraints on a_vars - vectorized
-    cons += [a_vars >= 0, a_vars <= 1]
+    cons += [b_vars >= 0, b_vars <= 1]
     
      # Column sum constraint: each user at most once - vectorized
-    cons += [cp.sum(a_vars, axis=0) <= (N*M)/K]
+    cons += [cp.sum(b_vars, axis=0) <= (N*M)/K]
     
     # Row sum constraint: at most M users per timeslot - vectorized
-    cons += [cp.sum(a_vars, axis=1) <= M]
+    cons += [cp.sum(b_vars, axis=1) <= M]
 
     # Want to maximize tn
     obj = cp.Maximize( cp.mean(t_vars) )
@@ -202,15 +202,15 @@ def optimize_a(alpha,
     if prob.status not in ("optimal", "optimal_inaccurate"):
         raise RuntimeError(f"SCA subproblem infeasible/failed: status {prob.status}")
     
-    return a_vars.value
+    return b_vars.value
 
-def objective(params, alpha, a, users, AU, AB, H, M):
+def objective(params, alpha, b, users, AU, AB, H, M):
     r, cx, cy = params
     return -meanSE(alpha, 
                    r, 
                    cx, 
                    cy, 
-                   a, 
+                   b, 
                    users=users,
                    AU=AU,
                    AB=AB,
@@ -249,7 +249,7 @@ def powells_optimizer(
             print(f'Powell\'s Optimizer Iteration {it}')
             print(f'    Values at iteration {it}: alpha = {alpha}, r={r}, c=({cx}, {cy})')
 
-        a = optimize_a(alpha, 
+        b = optimize_b(alpha, 
                        r, 
                        cx, 
                        cy, 
@@ -264,7 +264,7 @@ def powells_optimizer(
         alpha = optimize_alpha(r,
                                cx,
                                cy,
-                               a,
+                               b,
                                users=users,
                                AU=AU,
                                AB=AB,
@@ -276,7 +276,7 @@ def powells_optimizer(
         result = minimize(
                     objective,
                     [r,cx,cy],
-                    args=(alpha, a, users, AU, AB, H, M),
+                    args=(alpha, b, users, AU, AB, H, M),
                     method='Powell',
                     bounds=bounds,
                     options={
@@ -295,7 +295,7 @@ def powells_optimizer(
                                   r, 
                                   cx, 
                                   cy, 
-                                  a, 
+                                  b, 
                                   users=users,
                                   AU=AU,
                                   AB=AB,
@@ -308,7 +308,7 @@ def powells_optimizer(
                 break
         it += 1
     
-    return alpha, a, traj_history
+    return alpha, b, traj_history
 
 def random_schedule(M=M, maxiters=1000, tol=1e-9):
     mat = np.random.rand(N, K)
@@ -338,7 +338,7 @@ cy0 = 0
 def run_once(PAtx, users):
     CA = PAtx*GT*GR*(WAVELENGTH/(4*np.pi))**2
     AB = CA / N0
-    alpha_opt, a_opt, traj_hist = powells_optimizer(alpha0, r0, cx0, cy0, users=users, AB=AB, verbose=False)
+    alpha_opt, b_opt, traj_hist = powells_optimizer(alpha0, r0, cx0, cy0, users=users, AB=AB, verbose=False)
     r_opt, cx_opt, cy_opt = traj_hist[-1]
     return r_opt
 
