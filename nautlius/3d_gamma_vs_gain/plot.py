@@ -7,7 +7,7 @@ import matplotlib.patches as patches
 from scipy.optimize import minimize
 from joblib import Parallel, delayed
 
-plt.rcParams["font.size"] = 12
+plt.rcParams["font.size"] = 9
 
 # Seed random number generators
 seed = 324
