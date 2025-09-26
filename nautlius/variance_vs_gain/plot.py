@@ -441,11 +441,12 @@ def variance_gain(iterations=1000):
     centered = centered_all.mean(axis=0)
     upper = upper_all.mean(axis=0)
 
-    plt.plot(variance_arr, optimized, c='g', label='Optimized')
-    plt.plot(variance_arr, centered, c='r', label='Centered')
-    plt.plot(variance_arr, upper, c='b', label='Upper bound')
+    plt.plot(variance_arr, upper, c='b', label='Case A')
+    plt.plot(variance_arr, optimized, c='g', label='Case B')
+    plt.plot(variance_arr, centered, c='r', label='Case C')
+   
     plt.grid(True)
-    plt.xlabel("Variance (m)")
+    plt.xlabel("$\\sigma$ (m)")
     plt.ylabel("Achieved Spectral Efficiency (bps/Hz)")
     plt.legend()
     plt.savefig("variance-vs-gain.svg")

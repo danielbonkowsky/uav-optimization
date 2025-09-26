@@ -414,12 +414,12 @@ def gamma_vs_gain_plot(iterations=100):
     # plt.plot(gamma_arr, md_means, c='g', label='variance = 2000m')
     # plt.plot(gamma_arr, lg_means, c='b', label='variance = 3000m')
 
-    plt.plot(dist_arr, sm_means, c='r', label='variance = 1000m')
-    plt.plot(dist_arr, md_means, c='g', label='variance = 2000m')
-    plt.plot(dist_arr, lg_means, c='b', label='variance = 3000m')
+    plt.plot(dist_arr, sm_means, c='r', label='Case A')
+    plt.plot(dist_arr, md_means, c='g', label='Case B')
+    plt.plot(dist_arr, lg_means, c='b', label='Case C')
 
     plt.grid(True)
-    plt.xlabel("D (m)")
+    plt.xlabel("$\\mu_\\text{x}$ (m)")
     plt.ylabel("Spectral efficiency gain (bps/Hz)")
     plt.legend()
     plt.savefig("dist-vs-gain.svg")

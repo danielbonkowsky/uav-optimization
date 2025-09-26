@@ -384,22 +384,22 @@ def patx_plot(iterations=1000):
     md_radii = md_results.mean(axis=0)
     lg_radii = lg_results.mean(axis=0)
     
-    plt.plot(PAtx_arr, sm_radii, c='r', label='variance = 1000m')
+    plt.plot(PAtx_arr, sm_radii, c='r', label='Case A')
     plt.fill_between(PAtx_arr, np.add(sm_radii, sm_results.std(axis=0)), np.subtract(sm_radii, sm_results.std(axis=0)), color='r', alpha=0.3)
 
-    plt.plot(PAtx_arr, md_radii, c='g', label='variance = 2000m')
+    plt.plot(PAtx_arr, md_radii, c='g', label='Case B')
     plt.fill_between(PAtx_arr, np.add(md_radii, md_results.std(axis=0)), np.subtract(md_radii, md_results.std(axis=0)), color='g', alpha=0.3)
 
-    plt.plot(PAtx_arr, lg_radii, c='b', label='variance = 3000m')
+    plt.plot(PAtx_arr, lg_radii, c='b', label='Case C')
     plt.fill_between(PAtx_arr, np.add(lg_radii, lg_results.std(axis=0)), np.subtract(lg_radii, lg_results.std(axis=0)), color='b', alpha=0.3)
 
     plt.grid(True)
     plt.xlabel("UAV transmission power (W)")
     plt.ylabel("Optimal radius (m)")
     plt.legend()
-    plt.savefig("patx-vs-r.svg")
+    plt.savefig("patx-vs-r-m5.svg")
 
-    np.savez('patx-vs-r-data.npz',
+    np.savez('patx-vs-r-m5-data.npz',
              PAtx_arr=PAtx_arr,
              sm_radii=sm_radii,
              md_radii=md_radii,

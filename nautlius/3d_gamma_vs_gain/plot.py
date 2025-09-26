@@ -402,7 +402,7 @@ def hd_meshgrid():
     ax.set_yticklabels([f'{D_arr[i]:.1f}' for i in range(0, len(D_arr), len(D_arr)//5)])
 
     ax.set_xlabel('H')
-    ax.set_ylabel('D')
+    ax.set_ylabel('$\\mu_\\text{x}$ (m)')
     ax.set_title('SE gain Heatmap')
 
     # Add colorbar

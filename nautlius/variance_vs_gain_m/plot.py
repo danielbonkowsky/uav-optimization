@@ -7,9 +7,6 @@ import matplotlib.patches as patches
 from scipy.optimize import minimize
 from joblib import Parallel, delayed
 
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 9
-
 # Seed random number generators
 seed = 324
 random.seed(seed)
@@ -462,7 +459,7 @@ def variance_gain(iterations=100):
     plt.plot(variance_arr, m4_mean, c='c', label='M = 4')
     plt.plot(variance_arr, m5_mean, c='m', label='M = 5')
     plt.grid(True)
-    plt.xlabel("Variance (m)")
+    plt.xlabel("$\\sigma$ (m)")
     plt.ylabel("Achieved Spectral Efficiency (bps/Hz)")
     plt.legend()
     plt.savefig("variance-vs-gain-vs-m.svg")
